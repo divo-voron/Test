@@ -1,11 +1,8 @@
-﻿using System;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
+﻿using System.Text;
 using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Firefox;
-using OpenQA.Selenium.Support.UI;
+using Test;
 
 namespace SeleniumTests
 {
@@ -20,32 +17,30 @@ namespace SeleniumTests
         [SetUp]
         public void SetupTest()
         {
-            FirefoxOptions options = new FirefoxOptions();
-            options.BrowserExecutableLocation = @"c:\Ira\soft\Soft_for_test\FirefoxPortableESR\FirefoxPortable.exe";
-            options.UseLegacyImplementation = true;
+            FirefoxOptions options = new FirefoxOptions()
+            {
+                BrowserExecutableLocation = ConfigManager.Get<string>("BrowserExecutableLocation"),
+                UseLegacyImplementation = true
+            };
             driver = new FirefoxDriver(options);
-            baseURL = "http://localhost/";
+            baseURL = ConfigManager.Get<string>("baseURL");
             verificationErrors = new StringBuilder();
         }
 
         [TearDown]
         public void TeardownTest()
         {
-            try
-            {
+            if (driver != null)
                 driver.Quit();
-            }
-            catch (Exception)
-            {
-                // Ignore errors if unable to close the browser
-            }
             Assert.AreEqual("", verificationErrors.ToString());
         }
 
         [Test]
         public void TheUntitledTest()
         {
-            driver.Navigate().GoToUrl(baseURL + "addressbook/");
+            var link = UriHelper.GenerateUri(baseURL, "addressbook");
+            driver.Navigate().GoToUrl(link);
+
             driver.FindElement(By.Name("user")).Clear();
             driver.FindElement(By.Name("user")).SendKeys("admin");
             driver.FindElement(By.Name("pass")).Clear();
@@ -63,6 +58,7 @@ namespace SeleniumTests
             driver.FindElement(By.LinkText("group page")).Click();
             driver.FindElement(By.LinkText("Logout")).Click();
         }
+
         private bool IsElementPresent(By by)
         {
             try
